@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <string.h>
+
+char stack[50], input[50];
+int top = -1, i = 0;
+
+void push(char c) {
+    stack[++top] = c;
+    stack[top+1] = '\0';
+}
+
+void pop(int n) {
+    top -= n;
+    stack[top+1] = '\0';
+}
+
+int main() {
+    printf("Grammar: E -> E+E | E*E | (E) | id\n");
+    printf("Enter input string (use i for id): ");
+    scanf("%s", input);
+
+    printf("\nStack\tInput\tAction\n");
+
+    while (input[i] != '\0') {
+        push(input[i]);
+        printf("%s\t%s\tShift\n", stack, input + i + 1);
+        i++;
+
+        // Reduce id → E
+        if (stack[top] == 'i') {
+            pop(1);
+            push('E');
+            printf("%s\t%s\tReduce E->i\n", stack, input + i);
+        }
+
+        // Reduce E+E → E
+        if (top >= 2 && stack[top]=='E' && stack[top-1]=='+' && stack[top-2]=='E') {
+            pop(3);
+            push('E');
+            printf("%s\t%s\tReduce E->E+E\n", stack, input + i);
+        }
+
+        // Reduce E*E → E
+        if (top >= 2 && stack[top]=='E' && stack[top-1]=='*' && stack[top-2]=='E') {
+            pop(3);
+            push('E');
+            printf("%s\t%s\tReduce E->E*E\n", stack, input + i);
+        }
+
+        // Reduce (E) → E
+        if (top >= 2 && stack[top]==')' && stack[top-1]=='E' && stack[top-2]=='(') {
+            pop(3);
+            push('E');
+            printf("%s\t%s\tReduce E->(E)\n", stack, input + i);
+        }
+    }
+
+    if (stack[0]=='E' && top==0)
+        printf("\nAccepted\n");
+    else
+        printf("\nRejected\n");
+
+    return 0;
+}
